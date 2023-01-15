@@ -1,0 +1,71 @@
+﻿@page "/fetchdata"
+
+@using BlazorCrudSqlite.Models;
+@using BlazorCrudSqlite.Services
+@inject IStudentService StudentService
+@inject NavigationManager NavManager
+<h1>Lista de Alunos</h1>
+
+<p>Lista de todos os alunos criados.</p>
+
+@if (students == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Sobre Nome</th>
+                    <th>Sexo</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var student in students)
+                {
+                    <tr>
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>@student.Gender</td>
+                        <td>@student.Email</td>
+                        <td>
+                            <button type="submit" @onclick="@(()=> EditStudent(student.StudentID))" class="btn btn-primary">Editar</button>
+                        </td>
+                        <td>
+                            <button type="submit" @onclick="@(()=> DeleteStudent(student))" class="btn btn-primary">Deletar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@code {
+    private List<StudentModel> students;
+
+    protected override async Task OnInitializedAsync()
+    {
+        students = await StudentService.GetAllStudent();
+    }
+
+    private void EditStudent(int studentID)
+    {
+        NavManager.NavigateTo($"update_student/{studentID}");
+    }
+
+    private async void DeleteStudent(StudentModel student)
+    {
+        var response = await StudentService.DeleteStudent(student);
+        if (response > 0)
+        {
+            await OnInitializedAsync();
+            this.StateHasChanged();
+        }
+    }
+}
